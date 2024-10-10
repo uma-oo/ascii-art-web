@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomePage</title>
+</head>
+<body>
+    <form action="templates/index.html" method="POST">
+    <div>
+        <label for="body"></label>
+        <textarea id="body" name="body" placeholder="Type Something.." rows="10" cols="33"></textarea>
+    </div>
+        <fieldset rows="10" cols="33" >
+            <legend >Select a banner!</legend>
+          
+            <div>
+              <input type="radio" id="standard" name="banner" value="standard" checked />
+              <label for="standard">standard</label>
+            </div>
+          
+            <div>
+              <input type="radio" id="shadow" name="banner" value="shadow" />
+              <label for="shadow">shadow</label>
+            </div>
+          
+            <div>
+              <input type="radio" id="thinkertoy" name="banner" value="thinkertoy" />
+              <label for="thinkertoy">thinkertoy</label>
+            </div>
+          </fieldset>
+          
+          <input type="submit" value="Convert" />
+    </form>
+    <div>
+      {{.Text}}
+    </div>
+</body>
+</html>

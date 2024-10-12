@@ -6,26 +6,27 @@
     <title>HomePage</title>
 </head>
 <body>
-    <form action="templates/index.html" method="POST">
+    <form action="/" method="POST">
     <div>
         <label for="body"></label>
-        <textarea id="body" name="body" placeholder="Type Something.." rows="10" cols="33"></textarea>
+         
+        <textarea id="body" name="body" placeholder="Type Something.."  rows="10" cols="33">{{if .Input}}{{.Input}}{{end}}</textarea>
     </div>
         <fieldset rows="10" cols="33" >
             <legend >Select a banner!</legend>
           
             <div>
-              <input type="radio" id="standard" name="banner" value="standard" checked />
+              <input type="radio" id="standard" name="banner" value="standard"  {{if eq .Banner "standard"}} checked {{end}}  checked/>
               <label for="standard">standard</label>
             </div>
           
             <div>
-              <input type="radio" id="shadow" name="banner" value="shadow" />
+              <input type="radio" id="shadow" name="banner" value="shadow" {{if eq .Banner "shadow"}} checked {{end}}/>
               <label for="shadow">shadow</label>
             </div>
           
             <div>
-              <input type="radio" id="thinkertoy" name="banner" value="thinkertoy" />
+              <input type="radio" id="thinkertoy" name="banner" value="thinkertoy" {{if eq .Banner "thinkertoy"}} checked {{end}}/>
               <label for="thinkertoy">thinkertoy</label>
             </div>
           </fieldset>
@@ -33,7 +34,7 @@
           <input type="submit" value="Convert" />
     </form>
     <div>
-      {{.Text}}
+     <pre>{{.Output}}</pre> 
     </div>
 </body>
 </html>

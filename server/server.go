@@ -1,66 +1,85 @@
 package asciiArt
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
-	fn "asciiArt/functions"
+	function "asciiArt/functions"
 )
 
-var Art ascii
+type data struct {
+	Input  string
+	Banner string
+	Output string
+}
 
-type ascii struct {
+type input struct {
 	Text   string
 	Banner string
 }
 
-type result struct {
-	Text string
-}
-
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	text := r.FormValue("body")
-	banner := r.FormValue("banner")
-
-	temp, err := template.ParseFiles("./templates/index.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if r.URL.Path != "/" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
 	}
-	Art = ascii{Text: text, Banner: banner}
-	res := handleData()
 
-	temp.Execute(w, res)
+	r.Body = http.MaxBytesReader(w, r.Body, 4096) 
+
+	switch r.Method {
+	case "GET":
+		temp, err := template.ParseFiles("templates/index.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		temp.Execute(w, &data{})
+	case "POST":
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() Error: %v", err)
+			return
+		}
+		text := r.FormValue("body")
+		banner := r.FormValue("banner")
+
+		temp, err := template.ParseFiles("templates/index.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		a := &input{Text: text, Banner: banner}
+		if (input{}) == *a {
+			temp.Execute(w, &a)
+		} else {
+			temp.Execute(w, &data{Input: a.Text, Banner: a.Banner, Output: HandleData(a.Text, a.Banner)})
+		}
+	default:
+		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
+	}
 }
 
-func handleData() *result {
-	// Check for argument errors
-	userInput := Art.Banner
-	// Open the standard.txt file, read its contents, and create a map of ASCII art
+func HandleData(text string, banner string) string {
+	var new_file string
 
-	file, err := os.ReadFile("banners/" + userInput + ".txt")
-	if len(file) != 6623 {
-		log.Fatal("Error: something wrong with the standard file.")
-	}
+	file, err := os.ReadFile("banners/" + banner + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	standardArray := strings.Split(string(file[1:len(file)-1]), "\n\n")
-	asciiMap := fn.MapBuilder(standardArray)
-	// Validate user input
-	validUserInput, err := fn.UserInputChecker(userInput)
-	if err != nil {
-		log.Fatalf("Input Error : %v", err)
+	// fmt.Printf("file: %q", string(file))
+	if banner == "thinkertoy" {
+		new_file = strings.ReplaceAll(string(file), "\r\n", "\n")
+	} else {
+		new_file = string(file)
 	}
-	if userInput == "" {
-		return &result{""}
-	}
-	asciiArt := fn.BuildAsciiArt(strings.Split(validUserInput, "\\n"), asciiMap)
-	// Check if the user input contains only \n if so we eliminate one of them
-	if strings.ReplaceAll(validUserInput, "\\n", "") == "" {
-		asciiArt = asciiArt[1:]
-	}
-	return &result{Text: asciiArt}
+
+	liste_of_letters := strings.Split(new_file[1:len(new_file)-1], "\n\n")
+
+	m := function.CreateMap(liste_of_letters)
+	words := function.SplitNewLine(text)
+
+	return function.Print(words, m)
 }

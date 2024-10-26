@@ -1,85 +1,70 @@
-package asciiArt
+package server
 
 import (
-	"fmt"
-	"html/template"
-	"log"
 	"net/http"
-	"os"
-	"strings"
 
-	function "asciiArt/functions"
+	"asciiArt/functions"
 )
 
-type data struct {
-	Input  string
-	Banner string
-	Output string
-}
+var Err_Passed string
 
-type input struct {
+type Info struct {
+	Banner string
 	Text   string
-	Banner string
 }
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+var Data = Info{}
+
+type Result struct {
+	Art   string
+	Error string
+}
+
+var res = Result{}
+
+var data = struct {
+	Info   Info
+	Result Result
+}{
+	Info:   Data,
+	Result: res,
+}
+
+func MainHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
+		Err_Passed = "404 Page Not Found"
+		renderTemplateError(w, "index.html", Err_Passed, http.StatusNotFound)
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, 4096) 
-
-	switch r.Method {
-	case "GET":
-		temp, err := template.ParseFiles("templates/index.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		temp.Execute(w, &data{})
-	case "POST":
-		if err := r.ParseForm(); err != nil {
-			fmt.Fprintf(w, "ParseForm() Error: %v", err)
-			return
-		}
-		text := r.FormValue("body")
-		banner := r.FormValue("banner")
-
-		temp, err := template.ParseFiles("templates/index.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		a := &input{Text: text, Banner: banner}
-		if (input{}) == *a {
-			temp.Execute(w, &a)
-		} else {
-			temp.Execute(w, &data{Input: a.Text, Banner: a.Banner, Output: HandleData(a.Text, a.Banner)})
-		}
-	default:
-		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
+	if r.Method != http.MethodGet {
+		Err_Passed = "405 Method Not Allowed!"
+		renderTemplateError(w, "index.html", Err_Passed, http.StatusMethodNotAllowed)
+		return
 	}
+
+	renderTemplate(w, "index.html", data)
 }
 
-func HandleData(text string, banner string) string {
-	var new_file string
-
-	file, err := os.ReadFile("banners/" + banner + ".txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	// fmt.Printf("file: %q", string(file))
-	if banner == "thinkertoy" {
-		new_file = strings.ReplaceAll(string(file), "\r\n", "\n")
-	} else {
-		new_file = string(file)
+func AsciiHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/ascii-art" {
+		Err_Passed = "404 Page Not Found"
+		renderTemplateError(w, "index.html", Err_Passed, http.StatusNotFound)
+		return
 	}
 
-	liste_of_letters := strings.Split(new_file[1:len(new_file)-1], "\n\n")
+	if r.Method != http.MethodPost {
+		Err_Passed = "405 Method Not Allowed!"
+		renderTemplateError(w, "index.html", Err_Passed, http.StatusMethodNotAllowed)
+		return
+	}
 
-	m := function.CreateMap(liste_of_letters)
-	words := function.SplitNewLine(text)
+	if extractFormData(w, r) {
+		art := functions.HandleData(Data.Text, Data.Banner)
+		res = Result{Art: art, Error: ""}
 
-	return function.Print(words, m)
+		renderTemplate(w, "index.html", data)
+		res = Result{}
+
+	}
 }

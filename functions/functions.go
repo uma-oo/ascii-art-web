@@ -1,34 +1,10 @@
 package functions
 
 import (
+	"log"
+	"os"
 	"strings"
 )
-
-func SplitNewLine(sentence string) []string {
-	sentence = strings.ReplaceAll(sentence, "\r\n", "\\n")
-
-	var slice []string
-	var word string
-
-	for i := 0; i < len(sentence); i++ {
-		if i < len(sentence)-1 && sentence[i] == '\\' && sentence[i+1] == 'n' {
-
-			slice = append(slice, word)
-			word = ""
-			i++
-		} else {
-			word += string(sentence[i])
-		}
-	}
-
-	slice = append(slice, word)
-
-	if strings.ReplaceAll(sentence, "\\n", "") == "" { // "" {"",""}
-		slice = slice[1:]
-	}
-
-	return slice
-}
 
 func CreateMap(list_of_letters []string) map[string][]string {
 	m := make(map[string][]string)
@@ -76,11 +52,26 @@ func Print(words []string, m map[string][]string) string {
 	return new_str
 }
 
-// func Contains(slice []string, str string) bool {
-// 	for _, element := range slice {
-// 		if element == str {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+func HandleData(text string, banner string) string {
+	var new_file string
+
+	file, err := os.ReadFile("banners/" + banner + ".txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// fmt.Printf("file: %q", string(file))
+	if banner == "thinkertoy" {
+		new_file = strings.ReplaceAll(string(file), "\r\n", "\n")
+	} else {
+		new_file = string(file)
+	}
+
+	liste_of_letters := strings.Split(new_file[1:len(new_file)-1], "\n\n")
+
+	m := CreateMap(liste_of_letters)
+	words := strings.Split(text, "\r\n")
+
+	return Print(words, m)
+}
+
+

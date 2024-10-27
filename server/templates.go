@@ -18,11 +18,11 @@ func renderTemplate(w http.ResponseWriter, filename string, data interface{}) {
 		return
 	}
 	if err != nil {
-		renderTemplateError(w, "error_page.html", "Internal server Error", http.StatusInternalServerError)
+		renderTemplateError(w, "error_page.html", "500 Internal server Error", http.StatusInternalServerError)
 		return
 	}
 	if err := tmpl.Execute(w, data); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -43,8 +43,7 @@ func extractFormData(w http.ResponseWriter, r *http.Request) bool {
 	}
 	banner := r.FormValue("banner")
 	if !isBanner(banner) {
-		Err_Passed = "400 Bad Request!"
-		renderTemplateError(w, "error_page.html", Err_Passed, http.StatusBadRequest)
+		renderTemplateError(w, "error_page.html", "400 Bad Request!", http.StatusBadRequest)
 		return false
 	}
 
@@ -52,8 +51,7 @@ func extractFormData(w http.ResponseWriter, r *http.Request) bool {
 		Res.ErrorText = "You need to provide a text!"
 	}
 	if len(text) > 1000 {
-		Err_Passed = "400 Bad Request!"
-		renderTemplateError(w, "error_page.html", Err_Passed, http.StatusBadRequest)
+		renderTemplateError(w, "error_page.html", "400 Bad Request!", http.StatusBadRequest)
 		return false
 	}
 

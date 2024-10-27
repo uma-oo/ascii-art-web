@@ -43,8 +43,13 @@ func AsciiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sucess := extractFormData(w, r); sucess {
-		art := functions.HandleData(Res.Text, Res.Banner)
+		art , erreur  := functions.HandleData(Res.Text, Res.Banner)
+		if erreur!="" {
+			Res.ErrorText=erreur
+		}
 		Res.Ascii = art
 		renderTemplate(w, "index.html", Res)
+		Res=Info{}
+
 	}
 }

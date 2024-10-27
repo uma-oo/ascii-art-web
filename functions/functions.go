@@ -31,12 +31,14 @@ func IsPrintable(word string) bool {
 	return result
 }
 
-func Print(words []string, m map[string][]string) string {
+func Print(words []string, m map[string][]string) (string, string) {
 	new_str := ""
+	erreur := ""
+
 	for _, word := range words {
 		if !IsPrintable(word) {
-			new_str = "This sentence contains characters out of the range of printable ascii characters"
-			break
+			erreur = "This sentence contains characters out of the range of printable ascii characters"
+			return "", erreur
 		}
 		if word == "" {
 			new_str += "\r\n"
@@ -49,10 +51,10 @@ func Print(words []string, m map[string][]string) string {
 			new_str += "\n"
 		}
 	}
-	return new_str
+	return new_str, ""
 }
 
-func HandleData(text string, banner string) string {
+func HandleData(text string, banner string) (string, string) {
 	var new_file string
 
 	file, err := os.ReadFile("banners/" + banner + ".txt")
@@ -73,5 +75,3 @@ func HandleData(text string, banner string) string {
 
 	return Print(words, m)
 }
-
-

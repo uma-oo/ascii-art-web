@@ -3,54 +3,65 @@ package server
 import (
 	"html/template"
 	"net/http"
+	"regexp"
 )
 
-var Templates *template.Template
-
-func Init(templates *template.Template) {
-	Templates = templates
-}
-
-func renderTemplateError(w http.ResponseWriter, template string, data interface{}, status int) {
-	err := Templates.ExecuteTemplate(w, template, data)
-	if err != nil {
-		renderTemplateError(w, template, data, http.StatusInternalServerError)
-		return
-	}
-
+func renderTemplateError(w http.ResponseWriter, filename string, data interface{}, status int) {
 	w.WriteHeader(status)
+	renderTemplate(w, filename, data)
 }
 
-func renderTemplate(w http.ResponseWriter, template string, data interface{}) {
-	err := Templates.ExecuteTemplate(w, template, data)
-	if err != nil {
-		renderTemplateError(w, template, data, http.StatusInternalServerError)
+func renderTemplate(w http.ResponseWriter, filename string, data interface{}) {
+	tmpl, err := template.ParseFiles("templates/" + filename)
+	if filename == "error_page.html" && err != nil {
+		http.Error(w, "Internal Server Error 500", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(200)
+	if err != nil {
+		renderTemplateError(w, "error_page.html", "Internal server Error", http.StatusInternalServerError)
+		return
+	}
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func extractFormData(w http.ResponseWriter, r *http.Request) bool {
 	err := r.ParseForm()
 	if err != nil {
 		Err_Passed = "400 Bad Request!"
-		renderTemplateError(w, "index.html", Err_Passed, http.StatusBadRequest)
+		renderTemplateError(w, "error_page.html", Err_Passed, http.StatusBadRequest)
 		return false
 	}
 
 	text := r.FormValue("body")
+	if textReg := regexp.MustCompile(`^\r\n+`); textReg.MatchString(text) {
+		Res.Text = "\r\n" + text
+	} else {
+		Res.Text = text
+	}
 	banner := r.FormValue("banner")
+	if !isBanner(banner) {
+		Err_Passed = "400 Bad Request!"
+		renderTemplateError(w, "error_page.html", Err_Passed, http.StatusBadRequest)
+		return false
+	}
 
 	if text == "" {
-		res.Error = "You need to provide a text!"
+		Res.ErrorText = "You need to provide a text!"
 	}
 	if len(text) > 1000 {
 		Err_Passed = "400 Bad Request!"
-		renderTemplateError(w, "index.html", Err_Passed, http.StatusBadRequest)
+		renderTemplateError(w, "error_page.html", Err_Passed, http.StatusBadRequest)
 		return false
 	}
-    
-	Data = Info{Banner: banner, Text: text}
+
+	Res.Banner = banner
 
 	return true
+}
+
+func isBanner(banner string) bool {
+	return banner == "standard" || banner == "shadow" || banner == "thinkertoy"
 }

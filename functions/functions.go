@@ -39,7 +39,7 @@ func Print(words []string, m map[string][]string) string {
 			break
 		}
 		if word == "" {
-			new_str += "\n"
+			new_str += "\r\n"
 			continue
 		}
 		for i := 0; i < 8; i++ {

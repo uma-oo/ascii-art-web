@@ -10,23 +10,23 @@
     <div>
         <label for="body"></label>
          
-        <textarea id="body" name="body" placeholder="Type Something.."  rows="10" cols="33">{{if .Info.Text }} {{.Info.Text}} {{end}}</textarea>
+        <textarea id="body" name="body" placeholder="Type Something.."  rows="10" cols="33">{{.Text}}</textarea>
     </div>
         <fieldset rows="10" cols="33" >
             <legend >Select a banner!</legend>
           
             <div>
-              <input type="radio" id="standard" name="banner" value="standard"  {{if eq .Info.Banner "standard"}} checked {{end}}  checked/>
+              <input type="radio" id="standard" name="banner" value="standard"  {{if eq .Banner "standard"}} checked {{end}}  checked/>
               <label for="standard">standard</label>
             </div>
           
             <div>
-              <input type="radio" id="shadow" name="banner" value="shadow" {{if eq .Info.Banner "shadow"}} checked {{end}}/>
+              <input type="radio" id="shadow" name="banner" value="shadow" {{if eq .Banner "shadow"}} checked {{end}}/>
               <label for="shadow">shadow</label>
             </div>
           
             <div>
-              <input type="radio" id="thinkertoy" name="banner" value="thinkertoy" {{if eq .Info.Banner "thinkertoy"}} checked {{end}}/>
+              <input type="radio" id="thinkertoy" name="banner" value="thinkertoy" {{if eq .Banner "thinkertoy"}} checked {{end}}/>
               <label for="thinkertoy">thinkertoy</label>
             </div>
           </fieldset>
@@ -34,7 +34,7 @@
           <input type="submit" value="Convert" />
     </form>
     <div>
-     <pre>{{.Result.Art}}</pre> 
+     <pre>{{.Ascii}}</pre> 
     </div>
 </body>
 </html>
